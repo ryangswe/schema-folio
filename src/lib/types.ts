@@ -40,6 +40,12 @@ export interface SiteConfig {
   };
   map: {
     caption: { spec: string; runtime: string; note?: string };
+    /**
+     * `auto` (the default) draws the diagram when every column fits at a readable width and falls back
+     * to the indented tree when it doesn't. `diagram` keeps the diagram on any screen 920px or wider;
+     * `tree` always draws the tree. Phones always get the tree.
+     */
+    layout?: 'auto' | 'diagram' | 'tree';
     nodes: MapNode[];
   };
   about: {

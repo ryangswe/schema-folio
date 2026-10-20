@@ -8,14 +8,14 @@ every box is a page, and opening one sends a request through the drawing.
 ![The map of the demo site, in light mode](docs/map-light.webp)
 
 It is built with [Astro](https://astro.build): static output, no server, nothing to run but the
-build. The demo person, Morgan Vale, is made up, and every `.example` address in it is reserved and
+build. The demo person, Richard Hendricks, is borrowed from *Silicon Valley*, and every `.example` address in it is reserved and
 reaches no one.
 
 ## What you get
 
 - **A map of your work.** You list the components and what feeds what. The layout is automatic: a
-  box's column is its depth, and a parent sits level with its children. On a phone the map becomes
-  an indented tree.
+  box's column is its depth, and a parent sits level with its children. On a phone, or when the map
+  is too deep for the page, it becomes an indented tree.
 - **Shapes with meaning.** Each box takes the shape an architecture diagram would give it: edge,
   router, service, model, client, datastore, queue, person. A legend shows the ones you use.
 - **Two modes.** Light is *spec*, the drawing: graph paper, arrowheads and a title block with sheet
@@ -80,6 +80,12 @@ map: {
 Each node names its `parent`, the box the arrow comes from. `planned: true` draws it dashed, for work
 that has not shipped.
 
+Arrows run left to right, one column per level, so more projects make the map taller, never wider.
+A long chain of projects makes it wider: with `layout: 'auto'` (the default) the map is drawn as a
+diagram only when every column gets at least 160px, which allows five levels on a desktop screen,
+and as an indented tree otherwise. Set `layout: 'diagram'` to keep the diagram on any screen 920px or
+wider, or `layout: 'tree'` to always draw the tree. Phones always get the tree.
+
 | `kind` | Drawn as | Use it for |
 | --- | --- | --- |
 | `edge` | a dark pill | your domain, where requests come in |
@@ -97,23 +103,23 @@ A project is `src/content/projects/<slug>.md` and lives at `/work/<slug>`:
 
 ```md
 ---
-title: tidepool
+title: middle-out
 summary: One or two sentences, used at the top of the page and in link previews.
 blurb: A short line for the work table
-tag: stream · open source
-year: "2025"
-stack: Go, Kafka, Postgres
+tag: model · open source
+year: "2014"
+stack: C++, Python
 order: 1                      # position in the work table
 facts:
   - [Role, "Design and build"]
 links:
-  - { label: GitHub, href: "https://github.com/you/tidepool" }
+  - { label: GitHub, href: "https://github.com/you/middle-out" }
 transition:                   # optional; see below
   scene: pipeline
   stages:
-    - { name: ingest, note: "Kafka, 24 partitions" }
-    - { name: commit, note: "exactly once into Postgres" }
-  result: committed
+    - { name: chunk, note: "split at the median" }
+    - { name: verify, note: "bit for bit against the input" }
+  result: lossless
 draft: false
 ---
 
@@ -124,11 +130,11 @@ The body can use two blocks of the site's own:
 
 ```html
 <div class="big">
-  <div><b>40k</b><span>events a second at peak</span></div>
+  <div><b>5.2</b><span>Weissman score on the standard test set</span></div>
 </div>
 
 <ol class="steps">
-  <li><span class="n">01</span><b>Ingest</b><span>One consumer group reads every topic.</span></li>
+  <li><span class="n">01</span><b>Chunk</b><span>Split each block at its median.</span></li>
 </ol>
 ```
 
@@ -136,9 +142,9 @@ Keep the numbers honest: say what each one measured, against what, and for how l
 
 ### Links in your own pages
 
-Write internal links as root paths (`/work/tidepool`). In `.astro` files, pass them through `url()`
+Write internal links as root paths (`/work/middle-out`). In `.astro` files, pass them through `url()`
 from `src/lib/url.ts`, so they keep working when the site is served from a folder. Markdown links
-are left as written, so if your site lives in a folder, include it there (`/repo/work/tidepool`).
+are left as written, so if your site lives in a folder, include it there (`/repo/work/middle-out`).
 
 ### Writing
 

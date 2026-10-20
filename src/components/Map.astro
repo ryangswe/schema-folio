@@ -1,8 +1,9 @@
 ---
 import { url } from '../lib/url';
 // The site drawn as a system, from config.map. Layout is automatic: on wide screens a node's column is
-// its depth and its rows span its descendants, so a parent sits level with its children; on narrow
-// screens the map becomes an indented tree. Arrows are drawn by the client script from the boxes.
+// its depth and its rows span its descendants, so a parent sits level with its children. When the
+// columns would be too narrow to read (a phone, or a map too deep for the page), it is an indented tree
+// instead. Arrows are drawn by the client script from the boxes.
 import config from '../site.config';
 import type { Kind, MapNode } from '../lib/types';
 
@@ -33,6 +34,19 @@ function place(node: MapNode, depth: number): { row: number; span: number } {
 roots.forEach((r) => place(r, 0));
 const columns = Math.max(...placed.map((p) => p.depth)) + 1;
 
+// The screen width from which the diagram is drawn, or null for the tree everywhere. A column needs
+// MIN_COL px to stay readable; the page is at most PAGE px wide, with GUTTER px of margin around it.
+const MIN_COL = 160, GAP = 48, PAGE = 1180, GUTTER = 32, WIDE = 920;
+const layout = config.map.layout ?? 'auto';
+const needed = columns * MIN_COL + (columns - 1) * GAP;
+const diagramFrom = layout === 'tree' ? null
+  : layout === 'diagram' ? WIDE
+  : needed <= PAGE ? Math.max(WIDE, needed + GUTTER) : null;
+const diagramCss = diagramFrom && `@media (min-width: ${diagramFrom}px) {
+  .map-grid { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); column-gap: clamp(28px, 4vw, 56px); row-gap: 12px; max-width: none; }
+  .map-grid > .node { margin-left: 0; grid-column: var(--col); grid-row: var(--row); align-self: center; }
+}`;
+
 const LABELS: Record<Kind, string> = {
   edge: 'edge', router: 'router', service: 'service', model: 'model', client: 'client', store: 'datastore', queue: 'queue', person: 'person',
 };
@@ -41,6 +55,7 @@ const used = (Object.keys(LABELS) as Kind[]).filter((k) => nodes.some((n) => n.k
 const breakable = (name: string) => name.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`).replace(/([./])/g, '$1<wbr>');
 ---
 <figure class="map" aria-label="Site map drawn as a system diagram">
+  {diagramCss && <style is:inline set:html={diagramCss} />}
   <p class="map-cap">
     <span class="spec">{caption.spec}</span>
     <span class="run">{caption.runtime}</span>

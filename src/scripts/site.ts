@@ -15,7 +15,6 @@ const root = document.documentElement;
 const NS = 'http://www.w3.org/2000/svg';
 const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 const darkMQ = matchMedia('(prefers-color-scheme: dark)');
-const wideMQ = matchMedia('(min-width: 920px)');
 const T0 = performance.now();
 
 const $ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => r.querySelector<T>(s);
@@ -77,7 +76,7 @@ function layoutEdges() {
   svg.setAttribute('height', String(box.height));
   svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
   eg.textContent = '';
-  const wide = wideMQ.matches;
+  const wide = getComputedStyle(map).display === 'grid'; // the diagram; otherwise the indented tree
   const r = (v: number) => Math.round(v) + 0.5;
   $$('.node[data-parent]', map).forEach((n) => {
     const p = $(`.node[data-id="${n.dataset.parent}"]`, map);
@@ -101,7 +100,6 @@ function layoutEdges() {
     eg.appendChild(path);
   });
 }
-wideMQ.addEventListener('change', layoutEdges);
 
 let lastHover = '';
 document.addEventListener('pointerover', (e) => {

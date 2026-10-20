@@ -24,7 +24,7 @@ The shape says what kind of thing it is, the way an architecture diagram would:
 
 ## Write it down
 
-The map lives in `src/site.config.ts`. Each node names its parent, and the layout follows: a node's column is its depth, and a parent sits level with its children. Projects are Markdown files in `src/content/projects/`, and each can name the scene that plays on the way in: a typed snippet, or a request flowing through stages.
+The map lives in `src/site.config.ts`. Each node names its parent, and the layout follows: a node's column is its depth, and a parent sits level with its children. A map too deep for the screen is drawn as an indented tree instead. Projects are Markdown files in `src/content/projects/`, and each can name the scene that plays on the way in: a typed snippet, or a request flowing through stages.
 
 ## Keep it honest
 

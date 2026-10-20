@@ -139,7 +139,7 @@ a { color: inherit; }
 .map-cap .run { display: none; }
 :root[data-mode="runtime"] .map-cap .run { display: inline; }
 :root[data-mode="runtime"] .map-cap .spec { display: none; }
-.map-grid { position: relative; display: flex; flex-direction: column; gap: 10px; }
+.map-grid { position: relative; display: flex; flex-direction: column; gap: 10px; max-width: 760px; }
 .edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
 .edge { fill: none; stroke: var(--ink-2); stroke-width: 1.25; }
 .edge.planned { stroke-dasharray: 5 5; }
@@ -168,13 +168,7 @@ a { color: inherit; }
 .node.root:hover .tag { background: var(--paper); color: var(--ink); }
 .node.planned { border-style: dashed; background: transparent; }
 .node { margin-left: calc(var(--depth, 0) * 22px); }
-@media (min-width: 920px) {
-  .map-grid {
-    display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
-    column-gap: clamp(28px, 4vw, 56px); row-gap: 12px;
-  }
-  .node { margin-left: 0; grid-column: var(--col); grid-row: var(--row); align-self: center; }
-}
+/* The diagram layout's grid rules are written by Map.astro, which works out the width they need. */
 
 /* Home extras */
 .split { display: grid; gap: 28px; padding-block: 56px 24px; }
@@ -478,6 +472,7 @@ footer { border-top: 1px solid var(--rule); padding-block: 20px 64px; font-famil
 .prose.case > h2:first-child { margin-top: 0; }
 .prose.case img { border: 1px solid var(--rule); }
 
-/* Long names (a domain in a narrow column) wrap instead of spilling out of their box */
-.node .name { overflow-wrap: break-word; }
+/* Long names (a domain in a narrow column) wrap at their dots first, mid-word only if a part still won't fit */
+.node .name { overflow-wrap: anywhere; }
+.node .tag { width: fit-content; max-width: calc(100% + 6px); line-height: 1.3; }
 @media (max-width: 560px) { .rows a { grid-template-columns: 84px minmax(0, 1fr); } }
