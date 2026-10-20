@@ -1,0 +1,39 @@
+---
+import { url } from '../lib/url';
+// A page with a sticky aside (tag, title, summary, facts, links) and a body.
+import Base from './Base.astro';
+
+interface Props {
+  title: string;
+  tag: string;
+  summary: string;
+  facts?: [string, string][];
+  links?: { href: string; label: string }[];
+  back?: { href: string; label: string };
+}
+const { title, tag, summary, facts = [], links = [], back = { href: '/', label: '← map' } } = Astro.props;
+---
+<Base title={title} description={summary}>
+  <a class="back" href={url(back.href)}>{back.label}</a>
+  <div class="page view">
+    <aside>
+      <span class="tag">{tag}</span>
+      <h1>{title}</h1>
+      <p class="sum">{summary}</p>
+      {facts.length > 0 && (
+        <dl class="kv">
+          {facts.map(([k, v]) => (<><dt>{k}</dt><dd>{v}</dd></>))}
+        </dl>
+      )}
+      <slot name="aside" />
+      {links.length > 0 && (
+        <div class="links">
+          {links.map((l) => <a class="btn" href={url(l.href)} target={l.href.startsWith('/') ? undefined : '_blank'} rel="noopener">{l.label}{!l.href.startsWith('/') && ' ↗'}</a>)}
+        </div>
+      )}
+    </aside>
+    <div class="body">
+      <slot />
+    </div>
+  </div>
+</Base>

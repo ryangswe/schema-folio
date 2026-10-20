@@ -1,0 +1,34 @@
+---
+import { url } from '../lib/url';
+import Base from '../layouts/Base.astro';
+import Map from '../components/Map.astro';
+import config from '../site.config';
+import { posts, fmtDate } from '../lib/content';
+const latest = (await posts()).slice(0, 3);
+const { hero } = config;
+---
+<Base>
+  <div class="hero">
+    <p class="eyebrow">{hero.eyebrow}</p>
+    <h1>{config.name}</h1>
+    <p class="lede">{hero.lede}</p>
+    <ul class="facts">
+      {hero.status && <li class="open"><i></i>{hero.status}</li>}
+      {hero.facts.map((f) => <li><b>{f.strong}</b> {f.text}</li>)}
+      <li><b>{config.email}</b></li>
+    </ul>
+  </div>
+
+  <Map />
+
+  {latest.length > 0 && (
+    <div class="split">
+      <h2 class="h-sec">Latest writing</h2>
+      <ul class="rows">
+        {latest.map((p) => (
+          <li><a href={url(`/writing/${p.id}`)}><span class="d">{fmtDate(p.data.date)}</span><span class="t">{p.data.title}</span><span class="k">{p.data.kind}</span></a></li>
+        ))}
+      </ul>
+    </div>
+  )}
+</Base>

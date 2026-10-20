@@ -1,0 +1,11 @@
+---
+import { url } from '../lib/url';
+import Base from '../layouts/Base.astro';
+---
+<Base title="Not found" description="This page does not exist.">
+  <div class="lost view">
+    <span class="tag">404 · no route</span>
+    <h1 class="display-h1">No route matches this path.</h1>
+    <p>The request reached the edge and went nowhere. Try the <a href={url('/')}>map</a>, or press / to search.</p>
+  </div>
+</Base>

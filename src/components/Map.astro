@@ -1,0 +1,80 @@
+---
+import { url } from '../lib/url';
+// The site drawn as a system, from config.map. Layout is automatic: on wide screens a node's column is
+// its depth and its rows span its descendants, so a parent sits level with its children; on narrow
+// screens the map becomes an indented tree. Arrows are drawn by the client script from the boxes.
+import config from '../site.config';
+import type { Kind, MapNode } from '../lib/types';
+
+const { nodes, caption } = config.map;
+const byId = new Map(nodes.map((n) => [n.id, n]));
+const children = (id: string) => nodes.filter((n) => n.parent === id);
+for (const n of nodes) {
+  if (n.parent && !byId.has(n.parent)) throw new Error(`site.config.ts: map node "${n.id}" names a parent "${n.parent}" that does not exist`);
+}
+const roots = nodes.filter((n) => !n.parent);
+
+// Depth-first: each leaf takes the next row; a parent spans its leaves.
+interface Placed { node: MapNode; depth: number; row: number; span: number }
+const placed: Placed[] = [];
+let nextRow = 1;
+function place(node: MapNode, depth: number): { row: number; span: number } {
+  const entry: Placed = { node, depth, row: 0, span: 0 };
+  placed.push(entry);
+  const kids = children(node.id);
+  if (!kids.length) { entry.row = nextRow++; entry.span = 1; }
+  else {
+    const spans = kids.map((k) => place(k, depth + 1));
+    entry.row = spans[0].row;
+    entry.span = spans.reduce((a, s) => a + s.span, 0);
+  }
+  return entry;
+}
+roots.forEach((r) => place(r, 0));
+const columns = Math.max(...placed.map((p) => p.depth)) + 1;
+
+const LABELS: Record<Kind, string> = {
+  edge: 'edge', router: 'router', service: 'service', model: 'model', client: 'client', store: 'datastore', queue: 'queue', person: 'person',
+};
+const used = (Object.keys(LABELS) as Kind[]).filter((k) => nodes.some((n) => n.kind === k));
+// A long name such as a domain may wrap after a dot or a slash, never mid-word.
+const breakable = (name: string) => name.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`).replace(/([./])/g, '$1<wbr>');
+---
+<figure class="map" aria-label="Site map drawn as a system diagram">
+  <p class="map-cap">
+    <span class="spec">{caption.spec}</span>
+    <span class="run">{caption.runtime}</span>
+    {caption.note && <span>{caption.note}</span>}
+  </p>
+  <div class="map-grid" id="map" style={`--cols: ${columns}`}>
+    <svg class="edges" id="edges" aria-hidden="true">
+      <defs><marker id="arrow" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" /></marker></defs>
+      <g id="edge-g"></g>
+    </svg>
+    {placed.map(({ node: n, depth, row, span }) => (
+      <a
+        class:list={['node', 'brk', `k-${n.kind}`, { root: depth === 0 && n.kind === 'edge', planned: n.planned }]}
+        id={`n-${n.id}`} data-id={n.id} data-parent={n.parent} data-path={n.href} href={url(n.href)}
+        style={`--depth: ${depth}; --col: ${depth + 1}; --row: ${row} / span ${span}`}
+      >
+        <span class="shape" aria-hidden="true">
+          {n.kind === 'router' && (
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="7,0 93,0 100,50 93,100 7,100 0,50" vector-effect="non-scaling-stroke" /></svg>
+          )}
+          {n.kind === 'store' && (
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path d="M0,12 A50,12 0 0 1 100,12 V88 A50,12 0 0 1 0,88 Z" vector-effect="non-scaling-stroke" />
+              <path class="rim" d="M0,12 A50,12 0 0 0 100,12" vector-effect="non-scaling-stroke" />
+            </svg>
+          )}
+        </span>
+        <span class="tag">{n.tag}</span>
+        <span class="name" set:html={breakable(n.name)} />
+        <span class="sub">{n.sub}</span>
+      </a>
+    ))}
+  </div>
+  <ul class="legend" aria-label="Legend">
+    {used.map((k) => <li><i class={`g g-${k}`} aria-hidden="true"></i>{LABELS[k]}</li>)}
+  </ul>
+</figure>

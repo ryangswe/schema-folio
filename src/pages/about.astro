@@ -1,0 +1,56 @@
+---
+import { url } from '../lib/url';
+import Base from '../layouts/Base.astro';
+import config from '../site.config';
+const a = config.about;
+const initials = config.name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+---
+<Base title="About" description={`About ${config.name}`}>
+  <a class="back" href={url('/')}>← map</a>
+  <div class="page view">
+    <aside>
+      <div class="who" id="who">
+        <button class="portrait brk always" id="who-btn" type="button" aria-expanded="false" aria-controls="who-card">
+          {a.photo
+            ? <img src={url(a.photo)} alt={`Portrait of ${config.name}`} width="296" height="370">
+            : <span class="monogram" role="img" aria-label={config.name}>{initials}</span>}
+          <span class="chip">{a.card.chip} · <span id="who-hint">hover</span> for details</span>
+        </button>
+        <div class="pcard" id="who-card" role="group" aria-label={`${config.name} at a glance`}>
+          <div class="pc-top">
+            {a.photo ? <img src={url(a.photo)} alt="" width="56" height="56"> : <span class="monogram" aria-hidden="true">{initials}</span>}
+            <div><b>{config.name}</b><span>{a.card.subtitle}</span></div>
+          </div>
+          <dl class="pc-rows">
+            {a.card.rows.map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}
+          </dl>
+          {a.card.flavor && <p class="pc-flavor">{a.card.flavor}</p>}
+          <div class="pc-foot"><span>{a.card.foot[0]}</span><span class="ok">{a.card.foot[1]}</span></div>
+        </div>
+      </div>
+      <div class="copyrow"><code id="email">{config.email}</code><button class="btn" id="copy" type="button">copy</button></div>
+      <ul class="handles">
+        {a.links.map((l) => (
+          <li><span>{l.label}</span>{l.href ? <a href={l.href} target="_blank" rel="noopener">{l.handle} ↗</a> : <span class="h">{l.handle}</span>}</li>
+        ))}
+      </ul>
+    </aside>
+    <div class="body">
+      <section>
+        <span class="tag">/about</span>
+        <h1 class="display-h1">{a.headline}</h1>
+        {a.paragraphs.map((p) => <p>{p}</p>)}
+      </section>
+      {a.experience.length > 0 && (
+        <section>
+          <h2>Experience</h2>
+          <ul class="xp">
+            {a.experience.map((x) => (
+              <li><span class="when">{x.when}</span><div><h3>{x.title}</h3><p>{x.text}</p>{x.chips && <div class="chips">{x.chips.map((c) => <span>{c}</span>)}</div>}</div></li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  </div>
+</Base>

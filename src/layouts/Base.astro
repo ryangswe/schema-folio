@@ -1,0 +1,116 @@
+---
+import { base, url } from '../lib/url';
+import { execSync } from 'node:child_process';
+import { ClientRouter } from 'astro:transitions';
+import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
+import '../styles/global.css';
+import config from '../site.config';
+import { routes as allRoutes } from '../lib/content';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title, description = config.description } = Astro.props;
+// Built files are named /index.html and /work.html; every page is known by its clean path.
+const path = Astro.url.pathname.slice(base.length).replace(/\.html$/, '').replace(/\/index$/, '').replace(/\/$/, '') || '/';
+const { routes, sheets } = await allRoutes();
+const route = routes[path] ?? { n: 0, t: 'not found', label: 'Not found', tag: '404' };
+const fullTitle = title ? `${title} · ${config.name}` : config.name;
+const canonical = new URL(url(path), Astro.site);
+
+// Build facts for the runtime status bar. Hosts set the commit in the environment; git is the fallback.
+function commit(): string {
+  const env = process.env.CF_PAGES_COMMIT_SHA || process.env.WORKERS_CI_COMMIT_SHA || process.env.GITHUB_SHA
+    || process.env.VERCEL_GIT_COMMIT_SHA || process.env.COMMIT_REF;
+  if (env) return env.slice(0, 7);
+  try { return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); }
+  catch { return 'local'; }
+}
+const build = { commit: commit(), time: new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC' };
+const navOn = (section: string) => path === section || path.startsWith(section + '/');
+const client = { routes, email: config.email, base };
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{fullTitle}</title>
+    <meta name="description" content={description}>
+    <link rel="canonical" href={canonical}>
+    <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml">
+    <link rel="alternate" type="application/rss+xml" title={`${config.name}: writing`} href={url('/rss.xml')}>
+    <meta property="og:type" content="website">
+    <meta property="og:title" content={fullTitle}>
+    <meta property="og:description" content={description}>
+    <meta property="og:url" content={canonical}>
+    <meta name="theme-color" content="#F3F3F1" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0B0B0B" media="(prefers-color-scheme: dark)">
+    <script is:inline>
+      // Apply the saved mode before first paint, so the page never flashes the other theme.
+      (function () {
+        var r = document.documentElement, t = null;
+        try { t = localStorage.getItem('sf-theme'); } catch (e) {}
+        if (t === 'dark' || t === 'light') r.dataset.theme = t;
+        var dark = t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+        r.dataset.mode = dark ? 'runtime' : 'spec';
+      })();
+    </script>
+    <ClientRouter />
+  </head>
+  <body data-build-commit={build.commit} data-build-time={build.time}>
+    <script type="application/json" id="sf-data" set:html={JSON.stringify(client).replace(/</g, "\\u003c")} />
+    <header class="bar">
+      <div class="wrap">
+        <a class="brand" href={url('/')}><b></b>{config.domain}</a>
+        <nav class="nav" aria-label="Main">
+          <a href={url('/work')} aria-current={navOn('/work') ? 'page' : undefined}>work</a>
+          <a href={url('/writing')} aria-current={navOn('/writing') ? 'page' : undefined}>writing</a>
+          <a href={url('/about')} class="opt" aria-current={navOn('/about') ? 'page' : undefined}>about</a>
+        </nav>
+        <button class="kbd" id="open-pal" type="button" aria-label="Open the command palette">⌘K</button>
+        <button class="mode" id="mode" type="button" aria-label="Switch between spec (light) and runtime (dark)">
+          <span data-m="spec">spec</span><span data-m="runtime"><i class="dot"></i>runtime</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <slot />
+      <footer>
+        <div style="display:grid;gap:6px">
+          <span>© {new Date().getFullYear()} {config.name} · <a href={url('/rss.xml')}>RSS</a></span>
+          <span>Press ⌘K or / to jump anywhere · drawn with <a href="https://github.com/ryangswe/schema-folio">schema-folio</a></span>
+        </div>
+        <div id="tblock" aria-hidden="true">
+          <div class="k">drawing</div><div>{config.domain}</div>
+          <div class="k">sheet</div><div>{String(route.n).padStart(2, '0')} of {sheets} · {route.t}</div>
+          <div class="k">build</div><div>{build.commit} · {build.time}</div>
+        </div>
+      </footer>
+    </main>
+
+    <div id="console" transition:persist="console">
+      <ol id="con" aria-label="Event log"></ol>
+      <button class="head" id="con-toggle" type="button" aria-expanded="false" aria-controls="con">
+        <span><i></i>runtime</span><span class="last" id="con-last">booting</span><span class="path" id="con-path">{path}</span>
+      </button>
+    </div>
+    <div id="fx" hidden transition:persist="fx"></div>
+    <div id="pal" hidden transition:persist="pal">
+      <div class="pal-box" role="dialog" aria-modal="true" aria-label="Go to">
+        <input id="pal-q" type="text" placeholder="Go to… or type email" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="pal-list">
+        <ul id="pal-list" role="listbox"></ul>
+        <p class="pal-foot">↑ ↓ to move · enter to open · esc to close</p>
+      </div>
+    </div>
+    <div id="toast" role="status" hidden transition:persist="toast"></div>
+
+    <script>
+      import '../scripts/site';
+    </script>
+  </body>
+</html>

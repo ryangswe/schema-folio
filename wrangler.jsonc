@@ -1,0 +1,10 @@
+// Cloudflare Workers static assets: serve the built site in dist/.
+// "name" must match the Worker's name in the Cloudflare dashboard.
+{
+  "name": "schema-folio",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}

@@ -1,0 +1,15 @@
+---
+import { render } from 'astro:content';
+import Page from '../../layouts/Page.astro';
+import { projects } from '../../lib/content';
+
+export async function getStaticPaths() {
+  return (await projects()).map((project) => ({ params: { slug: project.id }, props: { project } }));
+}
+const { project } = Astro.props;
+const { Content } = await render(project);
+const d = project.data;
+---
+<Page title={d.title} tag={d.tag} summary={d.summary} facts={d.facts} links={d.links}>
+  <div class="prose case"><Content /></div>
+</Page>

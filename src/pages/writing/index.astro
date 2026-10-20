@@ -1,0 +1,17 @@
+---
+import { url } from '../../lib/url';
+import Page from '../../layouts/Page.astro';
+import { posts, fmtDate } from '../../lib/content';
+const list = await posts();
+---
+<Page title="Writing" tag="/writing" summary="Long reads and short notes." links={[{ href: '/rss.xml', label: 'RSS' }]}>
+  {list.length > 0 ? (
+    <ul class="rows">
+      {list.map((p) => (
+        <li><a href={url(`/writing/${p.id}`)}><span class="d">{fmtDate(p.data.date)}</span><span class="t">{p.data.title}{p.data.draft && ' (draft)'}</span><span class="k">{p.data.kind}</span></a></li>
+      ))}
+    </ul>
+  ) : (
+    <p class="note">The first posts are on the way. Subscribe to the RSS feed to get them.</p>
+  )}
+</Page>

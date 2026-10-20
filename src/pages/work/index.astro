@@ -1,0 +1,18 @@
+---
+import { url } from '../../lib/url';
+import Page from '../../layouts/Page.astro';
+import { projects } from '../../lib/content';
+const list = await projects();
+---
+<Page title="Work" tag="/work" summary="What I've built, and what it's built with.">
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Year</th><th>Project</th><th>What</th><th>Built with</th></tr></thead>
+      <tbody>
+        {list.map((p) => (
+          <tr><td class="num">{p.data.year}</td><td><a href={url(`/work/${p.id}`)}>{p.data.title}</a></td><td>{p.data.blurb}</td><td>{p.data.stack}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</Page>

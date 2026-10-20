@@ -1,0 +1,12 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# logs and local env
+npm-debug.log*
+.env
+.env.*
+.DS_Store
